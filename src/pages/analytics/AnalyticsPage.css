@@ -1,0 +1,87 @@
+.analytics-kpi {
+  text-align: center;
+}
+
+.analytics-kpi-value {
+  font-family: var(--font-display);
+  font-size: 1.9rem;
+  color: var(--text-primary);
+  line-height: 1;
+  margin-bottom: var(--space-2);
+}
+
+.analytics-kpi-label {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+}
+
+.chart-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 180px;
+  color: var(--text-muted);
+  font-size: 0.85rem;
+}
+
+.chart-tooltip {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  padding: var(--space-3) var(--space-4);
+  box-shadow: var(--shadow-md);
+}
+
+.chart-tooltip-label {
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+  margin-bottom: 4px;
+}
+
+/* Skills */
+.analytics-skills {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.analytics-skill-row {
+  display: grid;
+  grid-template-columns: 120px 1fr 28px;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.analytics-skill-name {
+  font-size: 0.83rem;
+  color: var(--text-secondary);
+  text-transform: capitalize;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.analytics-skill-bar-wrap {
+  height: 6px;
+  background: var(--bg-elevated);
+  border-radius: 99px;
+  overflow: hidden;
+}
+
+.analytics-skill-bar {
+  height: 100%;
+  background: var(--danger);
+  border-radius: 99px;
+  opacity: 0.65;
+  transition: width 0.5s ease;
+}
+
+.analytics-skill-count {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  text-align: right;
+}

@@ -1,0 +1,31 @@
+.resume-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.resume-card {}
+
+.resume-card--active {
+  border-color: rgba(62, 207, 142, 0.25);
+  background: linear-gradient(135deg, var(--bg-card) 60%, rgba(62,207,142,0.03));
+}
+
+.resume-card-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-4);
+}
+
+.resume-info {}
+.resume-name  { font-size: 0.97rem; font-weight: 500; color: var(--text-primary); }
+.resume-meta  { font-size: 0.8rem; color: var(--text-secondary); margin-top: 4px; }
+.resume-date  { margin-top: 4px; }
+
+.resume-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-shrink: 0;
+}
