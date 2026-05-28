@@ -1,0 +1,127 @@
+server:
+  port: 8080
+  servlet:
+    context-path: /api
+
+spring:
+  application:
+    name: careerpilot-backend
+
+  datasource:
+    url: jdbc:mysql://${DB_HOST:localhost}:${DB_PORT:3306}/${DB_NAME:careerpilot}?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC&characterEncoding=UTF-8
+    username: root
+    password: Ganesh@123
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    hikari:
+      pool-name: CareerPilotHikariPool
+      maximum-pool-size: 20
+      minimum-idle: 5
+      idle-timeout: 300000
+      connection-timeout: 20000
+      max-lifetime: 1200000
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQLDialect
+        format_sql: true
+        default_batch_fetch_size: 25
+    open-in-view: false
+
+  flyway:
+    enabled: true
+    baseline-on-migrate: true
+    locations: classpath:db/migration
+    table: flyway_schema_history
+
+  servlet:
+    multipart:
+      enabled: true
+      max-file-size: 10MB
+      max-request-size: 15MB
+
+  jackson:
+    date-format: yyyy-MM-dd HH:mm:ss
+    time-zone: UTC
+    serialization:
+      write-dates-as-timestamps: false
+    deserialization:
+      fail-on-unknown-properties: false
+
+# ==============================
+# JWT Configuration
+# ==============================
+app:
+  jwt:
+    secret: ${JWT_SECRET:careerpilot-super-secret-jwt-key-change-in-production-min-256-bits}
+    expiration-ms: ${JWT_EXPIRATION_MS:86400000}       # 24 hours
+    refresh-expiration-ms: ${JWT_REFRESH_MS:604800000} # 7 days
+
+  # ==============================
+  # File Storage
+  # ==============================
+  file:
+    upload-dir: ${FILE_UPLOAD_DIR:./uploads/resumes}
+    allowed-types: application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document
+    max-size-bytes: 10485760 # 10MB
+
+  # ==============================
+  # AI Provider Configuration
+  # ==============================
+  ai:
+    provider: ${AI_PROVIDER:claude}           # claude | openai | mock
+    api-key: ${AI_API_KEY:your-api-key-here}
+    base-url: ${AI_BASE_URL:https://api.anthropic.com}
+    model: ${AI_MODEL:claude-3-5-sonnet-20241022}
+    max-tokens: ${AI_MAX_TOKENS:4096}
+    timeout-seconds: ${AI_TIMEOUT_SECONDS:60}
+
+  # ==============================
+  # CORS
+  # ==============================
+  cors:
+    allowed-origins: ${CORS_ORIGINS:http://localhost:3000}
+    allowed-methods: GET,POST,PUT,DELETE,PATCH,OPTIONS
+    max-age: 3600
+
+# ==============================
+# Logging
+# ==============================
+logging:
+  level:
+    com.careerpilot: INFO
+    org.springframework.security: WARN
+    org.hibernate.SQL: WARN
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+    file: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+  file:
+    name: logs/careerpilot.log
+
+# ==============================
+# Springdoc / Swagger
+# ==============================
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    operations-sorter: alpha
+    tags-sorter: alpha
+    display-request-duration: true
+  show-actuator: false
+
+# ==============================
+# Actuator
+# ==============================
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      show-details: when_authorized

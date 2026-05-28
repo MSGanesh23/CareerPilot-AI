@@ -1,0 +1,34 @@
+# Core / OS
+.DS_Store
+Thumbs.db
+*.log
+
+# Frontend (Vite & Node)
+frontend/node_modules/
+frontend/dist/
+frontend/dist-ssr/
+frontend/*.local
+frontend/.env
+frontend/.env.local
+frontend/.env.*.local
+frontend/.vite/
+
+# Backend (Maven & Java)
+backend/target/
+backend/logs/
+backend/uploads/resumes/
+backend/*.jar
+backend/*.war
+backend/*.ear
+backend/*.zip
+backend/*.tar.gz
+
+# IDEs
+.idea/
+*.iml
+*.iws
+.vscode/
+.classpath
+.project
+.settings/
+dependency-reduced-pom.xml
