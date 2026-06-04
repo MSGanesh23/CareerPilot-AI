@@ -6,6 +6,7 @@ import com.careerpilot.domain.user.entity.User;
 import com.careerpilot.domain.user.repository.UserRepository;
 import com.careerpilot.security.JwtTokenProvider;
 import com.careerpilot.security.UserPrincipal;
+import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -24,6 +25,7 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final AuthenticationManager authenticationManager;
     private final JwtTokenProvider jwtTokenProvider;
+    private final EntityManager entityManager;
 
     // ----------------------------------------------------------------
     // Register
@@ -43,6 +45,10 @@ public class AuthService {
                 .build();
 
         userRepository.save(user);
+        // Flush to DB so the re-authentication query can see the new user
+        // within the same transaction (avoids UsernameNotFoundException on
+        // busy systems with strict isolation)
+        entityManager.flush();
         log.info("New user registered: email={}", user.getEmail());
 
         // Auto-login after registration

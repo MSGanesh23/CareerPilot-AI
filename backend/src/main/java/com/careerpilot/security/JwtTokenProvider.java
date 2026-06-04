@@ -2,7 +2,6 @@ package com.careerpilot.security;
 
 import com.careerpilot.config.AppProperties;
 import io.jsonwebtoken.*;
-import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import io.jsonwebtoken.security.SecurityException;
 import lombok.RequiredArgsConstructor;
@@ -97,11 +96,10 @@ public class JwtTokenProvider {
     }
 
     private SecretKey getSigningKey() {
-        byte[] keyBytes = Decoders.BASE64.decode(
-                java.util.Base64.getEncoder().encodeToString(
-                        appProperties.getJwt().getSecret().getBytes()
-                )
-        );
+        // JWT_SECRET must be a plain-text string of at least 32 characters.
+        // We use its raw UTF-8 bytes as the HMAC-SHA256 key material.
+        // In production, set JWT_SECRET to a cryptographically random 64+ char string.
+        byte[] keyBytes = appProperties.getJwt().getSecret().getBytes(java.nio.charset.StandardCharsets.UTF_8);
         return Keys.hmacShaKeyFor(keyBytes);
     }
 }

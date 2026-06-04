@@ -1,6 +1,11 @@
 package com.careerpilot.domain.resume.service;
 
 import lombok.extern.slf4j.Slf4j;
+import org.apache.pdfbox.Loader;
+import org.apache.pdfbox.pdmodel.PDDocument;
+import org.apache.pdfbox.text.PDFTextStripper;
+import org.apache.poi.xwpf.extractor.XWPFWordExtractor;
+import org.apache.poi.xwpf.usermodel.XWPFDocument;
 import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -13,14 +18,11 @@ import java.util.stream.Collectors;
 
 /**
  * Extracts plain text from uploaded resume files.
- *
- * Production note:
- * - For PDF: integrate Apache PDFBox (org.apache.pdfbox:pdfbox)
- * - For DOCX: integrate Apache POI (org.apache.poi:poi-ooxml)
- *
- * This implementation provides a clean integration point with
- * graceful fallback. Add the dependencies and uncomment the
- * extraction logic below when ready.
+ * <p>
+ * Supports:
+ * - PDF via Apache PDFBox 3.0.1
+ * - DOCX via Apache POI 5.2.5
+ * - Fallback: raw plain-text read (works for .txt files)
  */
 @Slf4j
 @Component
@@ -53,37 +55,35 @@ public class ResumeTextExtractor {
     }
 
     // ----------------------------------------------------------------
-    // PDF extraction — requires: org.apache.pdfbox:pdfbox:3.0.1
+    // PDF extraction — Apache PDFBox 3.0.1
     // ----------------------------------------------------------------
     private String extractFromPdf(MultipartFile file) throws IOException {
-        /*
-         * Uncomment when pdfbox is added to pom.xml:
-         *
-         * try (InputStream is = file.getInputStream();
-         *      PDDocument document = Loader.loadPDF(is.readAllBytes())) {
-         *     PDFTextStripper stripper = new PDFTextStripper();
-         *     return stripper.getText(document).trim();
-         * }
-         */
-        log.debug("PDF text extraction placeholder — add pdfbox dependency to enable");
-        return readAsPlainText(file);
+        try (InputStream is = file.getInputStream();
+             PDDocument document = Loader.loadPDF(is.readAllBytes())) {
+            PDFTextStripper stripper = new PDFTextStripper();
+            String text = stripper.getText(document).trim();
+            log.debug("Extracted {} characters from PDF: {}", text.length(), file.getOriginalFilename());
+            return text;
+        }
     }
 
     // ----------------------------------------------------------------
-    // DOCX extraction — requires: org.apache.poi:poi-ooxml:5.2.5
+    // DOCX extraction — Apache POI 5.2.5
     // ----------------------------------------------------------------
     private String extractFromDocx(MultipartFile file) throws IOException {
-        /*
-         * Uncomment when poi-ooxml is added to pom.xml:
-         *
-         * try (InputStream is = file.getInputStream();
-         *      XWPFDocument document = new XWPFDocument(is)) {
-         *     XWPFWordExtractor extractor = new XWPFWordExtractor(document);
-         *     return extractor.getText().trim();
-         * }
-         */
-        log.debug("DOCX text extraction placeholder — add poi-ooxml dependency to enable");
-        return readAsPlainText(file);
+        // Legacy .doc files cannot be parsed by POI XWPF — fall back to plain-text
+        String name = file.getOriginalFilename() != null ? file.getOriginalFilename().toLowerCase() : "";
+        if (name.endsWith(".doc") && !name.endsWith(".docx")) {
+            log.debug("Legacy .doc format — using plain-text fallback for: {}", file.getOriginalFilename());
+            return readAsPlainText(file);
+        }
+        try (InputStream is = file.getInputStream();
+             XWPFDocument document = new XWPFDocument(is);
+             XWPFWordExtractor extractor = new XWPFWordExtractor(document)) {
+            String text = extractor.getText().trim();
+            log.debug("Extracted {} characters from DOCX: {}", text.length(), file.getOriginalFilename());
+            return text;
+        }
     }
 
     // ----------------------------------------------------------------

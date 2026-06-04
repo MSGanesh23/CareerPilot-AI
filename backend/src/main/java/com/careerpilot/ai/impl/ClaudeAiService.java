@@ -33,6 +33,7 @@ public class ClaudeAiService implements AiService {
 
     private static final String ANTHROPIC_VERSION_HEADER = "anthropic-version";
     private static final String ANTHROPIC_VERSION = "2023-06-01";
+    private static final String ANTHROPIC_API_KEY_HEADER = "x-api-key";
 
     // ----------------------------------------------------------------
     // Resume Analysis
@@ -145,7 +146,7 @@ public class ClaudeAiService implements AiService {
             WebClient client = WebClient.builder()
                     .baseUrl(aiConfig.getBaseUrl())
                     .defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
-                    .defaultHeader(HttpHeaders.AUTHORIZATION, "Bearer " + aiConfig.getApiKey())
+                    .defaultHeader(ANTHROPIC_API_KEY_HEADER, aiConfig.getApiKey())
                     .defaultHeader(ANTHROPIC_VERSION_HEADER, ANTHROPIC_VERSION)
                     .build();
 

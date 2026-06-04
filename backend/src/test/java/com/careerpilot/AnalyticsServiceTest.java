@@ -1,4 +1,4 @@
-package com.careerpilot.domain.analytics;
+package com.careerpilot;
 
 import com.careerpilot.domain.analytics.dto.AnalyticsDtos;
 import com.careerpilot.domain.analytics.service.AnalyticsService;

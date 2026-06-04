@@ -1,9 +1,8 @@
 package com.careerpilot.domain.job.entity;
 
+import com.careerpilot.common.BaseEntity;
 import jakarta.persistence.*;
 import lombok.*;
-
-import java.time.Instant;
 
 @Entity
 @Table(name = "skill_gap_analyses", indexes = {
@@ -14,7 +13,7 @@ import java.time.Instant;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class SkillGapAnalysis {
+public class SkillGapAnalysis extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -38,8 +37,5 @@ public class SkillGapAnalysis {
 
     @Column(name = "raw_ai_response", columnDefinition = "LONGTEXT")
     private String rawAiResponse;
-
-    @Column(name = "created_at", nullable = false, updatable = false)
-    @Builder.Default
-    private Instant createdAt = Instant.now();
 }
+

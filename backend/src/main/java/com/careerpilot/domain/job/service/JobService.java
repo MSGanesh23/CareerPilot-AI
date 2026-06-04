@@ -1,7 +1,5 @@
 package com.careerpilot.domain.job.service;
 
-import com.careerpilot.ai.AiService;
-import com.careerpilot.ai.dto.AiDtos;
 import com.careerpilot.common.exception.ResourceNotFoundException;
 import com.careerpilot.common.response.PagedResponse;
 import com.careerpilot.domain.job.dto.JobDtos;
@@ -20,7 +18,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -36,7 +33,7 @@ public class JobService {
     private final ResumeRepository resumeRepository;
     private final UserService userService;
     private final ResumeService resumeService;
-    private final AiService aiService;
+    private final JobAiService jobAiService;  // injected — ensures @Async proxy is used
     private final JobMapper jobMapper;
 
     // ----------------------------------------------------------------
@@ -65,9 +62,10 @@ public class JobService {
         jobRepository.save(job);
         log.info("Job application created: jobId={}, userId={}, company={}", job.getId(), userId, job.getCompany());
 
-        // Trigger async AI analysis if resume text is available
+        // Trigger async AI analysis if resume text is available.
+        // jobAiService is a separate Spring bean so the @Async proxy is honoured.
         if (resume != null && resume.getParsedText() != null && !resume.getParsedText().isBlank()) {
-            triggerAiAnalysisAsync(job.getId(), resume.getParsedText(), request.getJobDescription());
+            jobAiService.triggerAiAnalysisAsync(job.getId(), resume.getParsedText(), request.getJobDescription());
         } else {
             log.warn("Skipping AI analysis for jobId={}: no resume text available", job.getId());
         }
@@ -134,15 +132,15 @@ public class JobService {
         jobRepository.save(job);
         log.info("Job application updated: jobId={}, userId={}", jobId, userId);
 
-        // Re-run AI analysis if JD changed
+        // Re-run AI analysis async if JD changed
         if (jobDescriptionChanged) {
             Optional<Resume> resume = resumeService.findActiveResumeEntity(userId);
             resume.filter(r -> r.getParsedText() != null && !r.getParsedText().isBlank())
                     .ifPresent(r -> {
-                        // Delete old analysis
+                        // Delete old analysis before re-running
                         skillGapRepository.findByJobApplicationId(jobId)
                                 .ifPresent(skillGapRepository::delete);
-                        triggerAiAnalysisAsync(job.getId(), r.getParsedText(), job.getJobDescription());
+                        jobAiService.triggerAiAnalysisAsync(job.getId(), r.getParsedText(), job.getJobDescription());
                     });
         }
 
@@ -161,7 +159,7 @@ public class JobService {
     }
 
     // ----------------------------------------------------------------
-    // Manually re-trigger AI analysis
+    // Manually re-trigger AI analysis (synchronous — returns result)
     // ----------------------------------------------------------------
     @Transactional
     public JobDtos.SkillGapDto triggerAnalysis(Long userId, Long jobId) {
@@ -181,53 +179,10 @@ public class JobService {
         skillGapRepository.findByJobApplicationId(jobId)
                 .ifPresent(skillGapRepository::delete);
 
-        SkillGapAnalysis analysis = runAiAnalysis(job, resume.getParsedText());
+        // Run synchronously (user explicitly requested result now)
+        SkillGapAnalysis analysis = jobAiService.runAiAnalysis(job, resume.getParsedText());
         log.info("Manual AI analysis triggered for jobId={}", jobId);
         return jobMapper.toSkillGapDto(analysis);
-    }
-
-    // ----------------------------------------------------------------
-    // Async AI analysis trigger (called after job create/update)
-    // ----------------------------------------------------------------
-    @Async
-    public void triggerAiAnalysisAsync(Long jobId, String resumeText, String jobDescription) {
-        try {
-            JobApplication job = jobRepository.findById(jobId).orElse(null);
-            if (job == null) return;
-            runAiAnalysis(job, resumeText);
-        } catch (Exception e) {
-            log.error("Async AI analysis failed for jobId={}: {}", jobId, e.getMessage(), e);
-        }
-    }
-
-    // ----------------------------------------------------------------
-    // Core AI analysis execution (synchronous)
-    // ----------------------------------------------------------------
-    @Transactional
-    public SkillGapAnalysis runAiAnalysis(JobApplication job, String resumeText) {
-        log.info("Running AI analysis for jobId={}", job.getId());
-
-        AiDtos.ResumeAnalysisResult result = aiService.analyzeResumeVsJob(
-                resumeText, job.getJobDescription()
-        );
-
-        SkillGapAnalysis analysis = SkillGapAnalysis.builder()
-                .jobApplication(job)
-                .matchScore(result.getMatchScore())
-                .missingSkills(jobMapper.toJson(result.getMissingSkills()))
-                .strongSkills(jobMapper.toJson(result.getStrongSkills()))
-                .improvementSuggestions(jobMapper.toJson(result.getImprovementSuggestions()))
-                .rawAiResponse(result.getRawAiResponse())
-                .build();
-
-        skillGapRepository.save(analysis);
-
-        // Update denormalized match score on the job
-        job.setAiMatchScore(result.getMatchScore());
-        jobRepository.save(job);
-
-        log.info("AI analysis complete for jobId={}, matchScore={}", job.getId(), result.getMatchScore());
-        return analysis;
     }
 
     // ----------------------------------------------------------------

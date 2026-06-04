@@ -9,8 +9,8 @@ spring:
 
   datasource:
     url: jdbc:mysql://${DB_HOST:localhost}:${DB_PORT:3306}/${DB_NAME:careerpilot}?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC&characterEncoding=UTF-8
-    username: root
-    password: Ganesh@123
+    username: ${DB_USERNAME:ganesh}
+    password: ${DB_PASSWORD:Ganesh@123}
     driver-class-name: com.mysql.cj.jdbc.Driver
     hikari:
       pool-name: CareerPilotHikariPool
