@@ -72,10 +72,10 @@ app:
   # AI Provider Configuration
   # ==============================
   ai:
-    provider: ${AI_PROVIDER:claude}           # claude | openai | mock
-    api-key: ${AI_API_KEY:your-api-key-here}
-    base-url: ${AI_BASE_URL:https://api.anthropic.com}
-    model: ${AI_MODEL:claude-3-5-sonnet-20241022}
+    provider: ${AI_PROVIDER:gemini}
+    api-key: ${GEMINI_API_KEY:your-gemini-api-key-here}
+    base-url: ${AI_BASE_URL:https://generativelanguage.googleapis.com}
+    model: ${AI_MODEL:gemini-2.5-flash}
     max-tokens: ${AI_MAX_TOKENS:4096}
     timeout-seconds: ${AI_TIMEOUT_SECONDS:60}
 
